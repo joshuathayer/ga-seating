@@ -5,7 +5,6 @@
 (use srfi-26)
 (use srfi-69)
 
-
 (define (random-gender)
   (let ((g (random 2)))
     (cond ((= g 0) 'm)
@@ -33,7 +32,7 @@
        (iota 25 97)))
 
 ;; what's the ethnicity of student 'a?
-;; (alist-ref 'gender (car (alist-ref 'a student-list)))
+;; (alist-ref 'ethnicity (car (alist-ref 'd student-list)))
        
 ;; given a list of k->v mappings, count total number of distinct v's
 ;; and return as a list of v->(count v)
@@ -165,9 +164,42 @@
              
 (define student-list (make-student-list))
 
+
 (report-score
  (min-of-trial-run (trial-run 2000 student-list))
  student-list)
- 
 
-(display student-list)
+
+;; randomly choose a solution, inverse weighted its score
+;; (lower-scoring solutions are more likely to be chosen)
+(define (choose-a-solution trial-solutions)
+  (lambda ()
+  (let* (
+         ;; find max score
+         (max-score (apply max (map cdr trial-solutions)))
+         (diff-scores (map (lambda (v) (expt (- max-score (cdr v)) 6))
+                           trial-solutions))
+         (z (begin (display (map cdr trial-solutions)) (newline)))
+         (x (begin (display diff-scores) (newline)))
+         (total-score (fold + 0 diff-scores))
+       
+         ;; chose a random point on the (0, total-score) line
+         (point (random total-score)))
+  
+  (letrec (;; figure out what solution lies there
+           (recc (lambda (solutions acc i)
+                   (let* ((solution (car solutions))
+                          (new-acc (+ acc (expt (- max-score (cdr solution)) 6))))
+                     (if (> new-acc point)
+                         i
+                         (recc (cdr solutions) new-acc (+ i 1)))))))
+    (begin (display total-score) (display " ") (display point) (newline)
+           (list-ref
+            trial-solutions
+            (recc trial-solutions 0 0)))))))
+
+(define trial-solutions (trial-run 2000 student-list))
+(define chooser (choose-a-solution trial-solutions))
+(chooser)
+(min-of-trial-run trial-solutions)
+(map cdr trial-solutions)
