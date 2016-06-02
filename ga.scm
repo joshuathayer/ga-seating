@@ -1,9 +1,13 @@
 ;; finding seating arrangements for a classroom
 
+;; re: loading modules- https://lists.gnu.org/archive/html/chicken-users/2016-03/msg00019.html
 (use extras)
-(use srfi-1)
+(use srfi-1) ;; lists
 (use srfi-26)
 (use srfi-69)
+
+;; compile this with $ csc -J -s students.scm
+(use students)
 
 (define (random-gender)
   (let ((g (random 2)))
@@ -56,7 +60,8 @@
 ;; given a list of student names, score a table where those students sit, based on
 ;; various criteria. returns a list of scores, one for each test
 (define (score-table arrangement student-list)
-  (let* ((table (alist->hash-table (map (lambda (k) (cons k (alist-ref k student-list)))
+  (let* ((student-names (map car student-list))
+         (table (alist->hash-table (map (lambda (k) (cons k (alist-ref k student-list)))
                                         arrangement)))
          
          (score-list
@@ -88,12 +93,34 @@
                  (min-count (apply min gender-counts)))
             (cond
              ((< min-count 2) 5)
-             (else 0)))
-          
-          )))
-      
-    score-list))
+             (else 0)))))
 
+         ;; scores are (student-1 student-2 score)
+         (avoid-pair-scores
+          (map (lambda (p) (if (and (memq (car p) arrangement)
+                                    (memq (cadr p) arrangement))
+                               (caddr p)
+                               0)) avoid-pairs))
+         
+         ;; this is bogus- we get a strong negative score if a student has
+         ;; multiple compatible peers, when we probbaly only need one
+         (prefer-pair-scores
+          (map (lambda (p)
+                 (if (and (memq (car p) arrangement)
+                          (memq (cadr p) arrangement))
+                     (caddr p)
+                     0)) prefer-pairs)))
+    
+    (append score-list avoid-pair-scores prefer-pair-scores)))
+
+(define (max-of-trial-run runs)
+  (let* ((lst (map cdr runs))
+         (max-index   (list-index (cute = (apply max lst) <>) lst)))
+    (list-ref runs max-index)))
+
+;; (report-score
+;;  (min-of-trial-run (trial-run 2000 student-list))
+;;  student-list)
 
 
 ;; http://codeimmersion.i3ci.hampshire.edu/2009/09/20/a-simple-scheme-shuffle/
@@ -162,7 +189,7 @@
                            (newline) (newline))))
                 tables))))
              
-(define student-list (make-student-list))
+;; (define student-list (make-student-list))
 
 
 (report-score
@@ -177,7 +204,7 @@
   (let* (
          ;; find max score
          (max-score (apply max (map cdr trial-solutions)))
-         (diff-scores (map (lambda (v) (expt (- max-score (cdr v)) 6))
+         (diff-scores (map (lambda (v) (expt (- max-score (cdr v)) 3))
                            trial-solutions))
          (z (begin (display (map cdr trial-solutions)) (newline)))
          (x (begin (display diff-scores) (newline)))
@@ -189,7 +216,7 @@
   (letrec (;; figure out what solution lies there
            (recc (lambda (solutions acc i)
                    (let* ((solution (car solutions))
-                          (new-acc (+ acc (expt (- max-score (cdr solution)) 6))))
+                          (new-acc (+ acc (expt (- max-score (cdr solution)) 3))))
                      (if (> new-acc point)
                          i
                          (recc (cdr solutions) new-acc (+ i 1)))))))
