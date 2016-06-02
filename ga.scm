@@ -35,6 +35,7 @@
                               (ethnicity ,(random-ethnicity)))))
        (iota 25 97)))
 
+
 ;; what's the ethnicity of student 'a?
 ;; (alist-ref 'ethnicity (car (alist-ref 'd student-list)))
        
@@ -200,7 +201,7 @@
 ;; randomly choose a solution, inverse weighted its score
 ;; (lower-scoring solutions are more likely to be chosen)
 (define (choose-a-solution trial-solutions)
-  (lambda ()
+
   (let* (
          ;; find max score
          (max-score (apply max (map cdr trial-solutions)))
@@ -208,22 +209,21 @@
                            trial-solutions))
          (z (begin (display (map cdr trial-solutions)) (newline)))
          (x (begin (display diff-scores) (newline)))
-         (total-score (fold + 0 diff-scores))
-       
-         ;; chose a random point on the (0, total-score) line
-         (point (random total-score)))
-  
-  (letrec (;; figure out what solution lies there
-           (recc (lambda (solutions acc i)
-                   (let* ((solution (car solutions))
-                          (new-acc (+ acc (expt (- max-score (cdr solution)) 3))))
-                     (if (> new-acc point)
-                         i
-                         (recc (cdr solutions) new-acc (+ i 1)))))))
-    (begin (display total-score) (display " ") (display point) (newline)
-           (list-ref
-            trial-solutions
-            (recc trial-solutions 0 0)))))))
+         (total-score (fold + 0 diff-scores)))
+
+
+    (lambda ()
+      
+      (letrec ((recc (lambda (point solutions acc i)
+                       (let* ((solution (car solutions))
+                              (new-acc (+ acc (expt (- max-score (cdr solution)) 3))))
+                         (if (> new-acc point)
+                             i
+                             (recc point (cdr solutions) new-acc (+ i 1)))))))
+        (begin (display total-score) (newline)
+               (list-ref
+                trial-solutions
+                (recc (random total-score) trial-solutions 0 0)))))))
 
 (define trial-solutions (trial-run 2000 student-list))
 (define chooser (choose-a-solution trial-solutions))
