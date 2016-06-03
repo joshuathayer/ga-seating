@@ -72,28 +72,28 @@
            (let* ((ethnicities (map car (attr-count table 'ethnicity)))
                  (eth-count (length ethnicities)))
             (cond
-             ((< eth-count 2) 5)
+             ((< eth-count 2) 20)
              (else 0)))
           
           ;; at least two of any ethnicity
           (let* ((eth-counts (map cdr (attr-count table 'ethnicity)))
                  (min-count (apply min eth-counts)))
             (cond
-             ((< min-count 2) 5)
+             ((< min-count 2) 20)
              (else 0)))
 
           ;; at least two genders
           (let* ((genders (map car (attr-count table 'gender)))
                  (gender-count (length genders)))
             (cond
-             ((< gender-count 2) 5)
+             ((< gender-count 2) 20)
              (else 0)))
           
           ;; at least two of any gender
           (let* ((gender-counts (map cdr (attr-count table 'gender)))
                  (min-count (apply min gender-counts)))
             (cond
-             ((< min-count 2) 5)
+             ((< min-count 2) 20)
              (else 0)))))
 
          ;; scores are (student-1 student-2 score)
@@ -110,7 +110,7 @@
                  (if (and (memq (car p) arrangement)
                           (memq (cadr p) arrangement))
                      (caddr p)
-                     0)) prefer-pairs)))
+                     10)) prefer-pairs)))
     
     (append score-list avoid-pair-scores prefer-pair-scores)))
 
@@ -197,7 +197,6 @@
  (min-of-trial-run (trial-run 2000 student-list))
  student-list)
 
-
 ;; randomly choose a solution, inverse weighted its score
 ;; (lower-scoring solutions are more likely to be chosen)
 (define (choose-a-solution trial-solutions)
@@ -207,8 +206,8 @@
          (max-score (apply max (map cdr trial-solutions)))
          (diff-scores (map (lambda (v) (expt (- max-score (cdr v)) 3))
                            trial-solutions))
-         (z (begin (display (map cdr trial-solutions)) (newline)))
-         (x (begin (display diff-scores) (newline)))
+         ;; (z (begin (display (map cdr trial-solutions)) (newline)))
+         ;; (x (begin (display diff-scores) (newline)))
          (total-score (fold + 0 diff-scores)))
 
 
@@ -220,7 +219,7 @@
                          (if (> new-acc point)
                              i
                              (recc point (cdr solutions) new-acc (+ i 1)))))))
-        (begin (display total-score) (newline)
+        (begin ;; (display total-score) (newline)
                (list-ref
                 trial-solutions
                 (recc (random total-score) trial-solutions 0 0)))))))

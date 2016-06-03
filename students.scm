@@ -10,15 +10,15 @@
       (ethan michael   9999)))
 
   (define prefer-pairs
-    '((olivia   george    -10)
-      (olivia   kiki      -10)
-      (olivia   luna      -10)
-      (olivia   jaydenc   -10)
-      (jayden   alexander -7)
-      (emily    abagail   -7)
-      (sophia   isabella  -10)
-      (sophia   mia       -10)
-      (isabella mia       -7)))
+    '((emma     mason     1)
+      (emma     olivia    1)
+      (emma     sophia    1)
+      (olivia   isabella  1)
+      (elijah   jacob     3)
+      (emily    mia       3)
+      (sophia   isabella  1)
+      (sophia   mia       1)
+      (isabella harper    3)))
   
   (define student-list
     '((noah    ((gender m)
